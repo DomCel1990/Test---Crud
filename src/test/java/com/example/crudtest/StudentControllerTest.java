@@ -15,8 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,16 +32,32 @@ class StudentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    //Creo funzione ausiliaria per prendere un singolo studente e non duplicare codice
+    private Student getStudentFromId(Long id) throws Exception {
+        MvcResult result = this.mockMvc.perform(get("/student/" + id))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        try {
+            Student student1 = objectMapper.readValue(result.getResponse().getContentAsString(), Student.class);
+            return student1;
+        }catch (Exception e){
+            return null;
+        }
+    }
+
     //Creo una funzione ausiliaria che mi crea un utent
     private Student generateStudent() throws Exception {
         Student student = new Student("Domenico", "Celani ", false);
         return generateStudent(student);
     }
+
     private Student generateStudent(Student student) throws Exception {
-        MvcResult result= generateStudentinDB(student);
+        MvcResult result = generateStudentinDB(student);
         Student student1 = objectMapper.readValue(result.getResponse().getContentAsString(), Student.class);
         return student1;
     }
+
     //Creo una funzione ausiliaria che salva nel DB uno studente
     private MvcResult generateStudentDB() throws Exception {
         Student student = new Student("Domenico", "Celani ", false);
@@ -70,7 +85,7 @@ class StudentControllerTest {
 
     @Test
     void createStudent() throws Exception {
-        Student student =generateStudent();
+        Student student = generateStudent();
         assertThat(student.getId()).isNotNull();
     }
 
@@ -93,15 +108,76 @@ class StudentControllerTest {
         //Creo uno studente
         Student student = generateStudent();
         //dico ti far partire il metodo get per ottenere un singolo utente
-        MvcResult result = this.mockMvc.perform(get("/student/" +student.getId()))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-
-        Student student1 = objectMapper.readValue(result.getResponse().getContentAsString(), Student.class);
+        Student student1= getStudentFromId(student.getId());
         assertThat(student1.getId()).isEqualTo(student.getId());
     }
 
+    @Test
+    void updateUser() throws Exception {
+        Student student = generateStudent();
+        assertThat(student.getId()).isNotNull();
 
+        String newName = "Marco";
+        student.setName(newName);
+        String json = objectMapper.writeValueAsString(student);
+        //dico di fare il put di student a mockMVC
+        MvcResult mvcResult = this.mockMvc.perform((put("/student/" + student.getId())
+                        //gli dico che è un json
+                        .contentType(MediaType.APPLICATION_JSON)
+                        //gli do il contenuto
+                        .content(json)))
+                //gli dico di stampare tutta la rispons
+                .andDo(print())
+                //aspettati che sia tutto ok
+                .andExpect(status().isOk())
+                //fai return
+                .andReturn();
+        Student student1 = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Student.class);
+
+        //qui stiamo controllando che il nostro put sia andato a buon fine
+        assertThat(student1.getId()).isEqualTo(student.getId());
+        assertThat(student1.getName()).isEqualTo(newName);
+
+        //verifico anche con il get
+        Student studentGet= getStudentFromId(student.getId());
+        assertThat(studentGet.getId()).isEqualTo(student.getId());
+        assertThat(studentGet.getName()).isEqualTo(newName);
+    }
+    @Test
+    void deleteStudentTest() throws Exception{
+        Student student = generateStudent();
+        assertThat(student.getId()).isNotNull();
+        //dico di fare il delete di student a mockMVC
+        MvcResult mvcResult = this.mockMvc.perform(delete("/student/"+student.getId()))
+                //gli dico di stampare tutta la rispons
+                .andDo(print())
+                //aspettati che sia tutto ok
+                .andExpect(status().isOk())
+                //fai return
+                .andReturn();
+
+        Student studentGet= getStudentFromId(student.getId());
+        assertThat(studentGet).isNull();
+    }
+
+    @Test
+    void updateStudentIsWoking() throws Exception {
+        Student student = generateStudent();
+        assertThat(student.getId()).isNotNull();
+        MvcResult mvcResult = this.mockMvc.perform(put("/student/"+student.getId()+"/is-working?working=true"))
+
+                //gli dico di stampare tutta la rispons
+                .andDo(print())
+                //aspettati che sia tutto ok
+                .andExpect(status().isOk())
+                //fai return
+                .andReturn();
+
+        Student student1 = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Student.class);
+        assertThat(student1.getId()).isNotNull();
+        assertThat(student1.getId()).isEqualTo(student.getId());
+        assertThat(student1.isWorking()).isEqualTo(true);
+
+    }
 }
 
