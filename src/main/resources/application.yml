@@ -8,6 +8,7 @@ spring:
     show_sql: true
     hibernate:
       ddl-auto: create
+server.port: 5500
 ---
 environment: test
 spring:

@@ -11,19 +11,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/student")
 public class StudentController {
-
-    @Autowired
-    private StudentRepository studentRepository;
     @Autowired
     private StudentService studentService;
 
     @PostMapping
     public Student createStudent(@RequestBody Student student){
-        return studentRepository.save(student);
+
+        return studentService.createStudent(student);
     }
     @GetMapping
     public List<Student> studentsGet(){
-        return studentRepository.findAll();
+
+        return studentService.studentsGet();
     }
     @GetMapping("/{id}")
     public Student getSingleStudent(@PathVariable Long id){
@@ -39,6 +38,6 @@ public class StudentController {
     }
     @DeleteMapping("/{id}")
     public void deleteStudent(@PathVariable Long id){
-        studentRepository.deleteById(id);
+        studentService.deleteStudent(id);
     }
 }

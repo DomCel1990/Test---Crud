@@ -4,6 +4,8 @@ import com.example.crudtest.entities.Student;
 import com.example.crudtest.repositories.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.swing.plaf.LabelUI;
 import java.util.List;
@@ -16,6 +18,12 @@ public class StudentService {
     private StudentRepository studentRepository;
 
 
+    public Student createStudent(Student student){
+        return studentRepository.save(student);
+    }
+    public List<Student> studentsGet(){
+        return studentRepository.findAll();
+    }
     public Student getSingleStudent(Long id) {
         Optional<Student> student = studentRepository.findById(id);
         if (student.isPresent())
@@ -40,5 +48,8 @@ public class StudentService {
             return studentRepository.save(student);
         }else return null;
 
+    }
+    public void deleteStudent(Long id){
+        studentRepository.deleteById(id);
     }
 }

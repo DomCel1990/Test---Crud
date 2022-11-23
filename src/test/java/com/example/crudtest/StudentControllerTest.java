@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Repository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -41,7 +42,7 @@ class StudentControllerTest {
         try {
             Student student1 = objectMapper.readValue(result.getResponse().getContentAsString(), Student.class);
             return student1;
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
@@ -108,7 +109,7 @@ class StudentControllerTest {
         //Creo uno studente
         Student student = generateStudent();
         //dico ti far partire il metodo get per ottenere un singolo utente
-        Student student1= getStudentFromId(student.getId());
+        Student student1 = getStudentFromId(student.getId());
         assertThat(student1.getId()).isEqualTo(student.getId());
     }
 
@@ -119,13 +120,14 @@ class StudentControllerTest {
 
         String newName = "Marco";
         student.setName(newName);
+        //trasformo il mio oggetto studente in una stringa
         String json = objectMapper.writeValueAsString(student);
         //dico di fare il put di student a mockMVC
-        MvcResult mvcResult = this.mockMvc.perform((put("/student/" + student.getId())
+        MvcResult mvcResult = this.mockMvc.perform(put("/student/" + student.getId())
                         //gli dico che è un json
                         .contentType(MediaType.APPLICATION_JSON)
                         //gli do il contenuto
-                        .content(json)))
+                        .content(json))
                 //gli dico di stampare tutta la rispons
                 .andDo(print())
                 //aspettati che sia tutto ok
@@ -139,16 +141,17 @@ class StudentControllerTest {
         assertThat(student1.getName()).isEqualTo(newName);
 
         //verifico anche con il get
-        Student studentGet= getStudentFromId(student.getId());
+        Student studentGet = getStudentFromId(student.getId());
         assertThat(studentGet.getId()).isEqualTo(student.getId());
         assertThat(studentGet.getName()).isEqualTo(newName);
     }
+
     @Test
-    void deleteStudentTest() throws Exception{
+    void deleteStudentTest() throws Exception {
         Student student = generateStudent();
         assertThat(student.getId()).isNotNull();
         //dico di fare il delete di student a mockMVC
-        MvcResult mvcResult = this.mockMvc.perform(delete("/student/"+student.getId()))
+        MvcResult mvcResult = this.mockMvc.perform(delete("/student/" + student.getId()))
                 //gli dico di stampare tutta la rispons
                 .andDo(print())
                 //aspettati che sia tutto ok
@@ -156,7 +159,7 @@ class StudentControllerTest {
                 //fai return
                 .andReturn();
 
-        Student studentGet= getStudentFromId(student.getId());
+        Student studentGet = getStudentFromId(student.getId());
         assertThat(studentGet).isNull();
     }
 
@@ -164,7 +167,7 @@ class StudentControllerTest {
     void updateStudentIsWoking() throws Exception {
         Student student = generateStudent();
         assertThat(student.getId()).isNotNull();
-        MvcResult mvcResult = this.mockMvc.perform(put("/student/"+student.getId()+"/is-working?working=true"))
+        MvcResult mvcResult = this.mockMvc.perform(put("/student/" + student.getId() + "/is-working?working=true"))
 
                 //gli dico di stampare tutta la rispons
                 .andDo(print())
